@@ -1,66 +1,157 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Product, CategoryType } from '../types';
-import { CURRENCY, CATEGORY_LABELS } from '../constants';
+import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Upload, Shield, Zap, Share2, Loader2, Image as ImageIcon } from 'lucide-react';
+import { UploadedImage } from '../types';
 
-const HomePage: React.FC<{ products: Product[] }> = ({ products }) => {
+interface HomePageProps {
+  onUpload: (images: UploadedImage[]) => void;
+}
+
+const HomePage: React.FC<HomePageProps> = ({ onUpload }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+
+  const processFiles = (files: FileList) => {
+    setIsUploading(true);
+    const newImages: UploadedImage[] = [];
+    let processedCount = 0;
+
+    Array.from(files).forEach(file => {
+      if (!file.type.startsWith('image/')) {
+        processedCount++;
+        if (processedCount === files.length) finalize();
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const img: UploadedImage = {
+          id: Math.random().toString(36).substr(2, 9),
+          name: file.name,
+          url: reader.result as string,
+          size: (file.size / 1024).toFixed(1) + ' KB',
+          type: file.type,
+          createdAt: new Date().toISOString()
+        };
+        newImages.push(img);
+        processedCount++;
+        if (processedCount === files.length) finalize();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    const finalize = () => {
+      if (newImages.length > 0) {
+        onUpload(newImages);
+        setTimeout(() => {
+          setIsUploading(false);
+          navigate('/gallery');
+        }, 800);
+      } else {
+        setIsUploading(false);
+        alert('يرجى اختيار ملفات صور صالحة');
+      }
+    };
+  };
+
+  const finalize = () => {}; // Placeholder for the scoping
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files) {
+      processFiles(e.dataTransfer.files);
+    }
+  };
+
   return (
-    <div>
+    <div className="pb-12">
       {/* Hero Section */}
-      <section className="relative bg-blue-600 text-white py-24 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 relative z-10">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">تسوق بذكاء، عش براحة</h1>
-          <p className="text-xl mb-8 max-w-2xl">اكتشف أحدث الإلكترونيات، مستلزمات المنزل، وأفضل عروض السيارات في مكان واحد.</p>
-          <div className="flex gap-4">
-            <Link to="/category/electronics" className="bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition">تسوق الآن</Link>
-          </div>
-        </div>
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-blue-500 transform skew-x-12 translate-x-1/2 opacity-50"></div>
-      </section>
+      <section className="bg-gradient-to-b from-blue-50 to-white py-20 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-6 leading-tight">
+            ارفع صورك <span className="text-blue-600">بسهولة</span> وشاركها في ثوانٍ
+          </h1>
+          <p className="text-xl text-slate-500 mb-12 max-w-2xl mx-auto">
+            أفضل منصة لرفع وتخزين الصور مجاناً. لا حاجة للتسجيل، فقط اسحب وأفلت صورك وابدأ المشاركة فوراً.
+          </p>
 
-      {/* Categories */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-10 text-center">تصفح حسب الفئة</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {Object.values(CategoryType).map(cat => (
-              <Link 
-                key={cat} 
-                to={`/category/${cat}`}
-                className="group relative h-64 rounded-2xl overflow-hidden shadow-lg"
-              >
-                <img src={`https://picsum.photos/seed/${cat}/800/600`} alt={cat} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                  <span className="text-white text-2xl font-bold">{CATEGORY_LABELS[cat]}</span>
+          {/* Upload Area */}
+          <div 
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`
+              relative bg-white border-4 border-dashed rounded-3xl p-12 md:p-20 
+              transition-all duration-300 cursor-pointer group shadow-2xl shadow-blue-100/50
+              ${isDragging ? 'border-blue-500 bg-blue-50 scale-[1.02]' : 'border-slate-200 hover:border-blue-400'}
+            `}
+          >
+            <input 
+              type="file" 
+              multiple 
+              accept="image/*" 
+              ref={fileInputRef} 
+              onChange={(e) => e.target.files && processFiles(e.target.files)} 
+              className="hidden" 
+            />
+
+            <div className="flex flex-col items-center">
+              {isUploading ? (
+                <div className="flex flex-col items-center animate-pulse">
+                  <Loader2 size={64} className="text-blue-600 animate-spin mb-4" />
+                  <h3 className="text-2xl font-bold text-slate-800">جاري الرفع...</h3>
                 </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Products */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center mb-10">
-            <h2 className="text-3xl font-bold">أحدث المنتجات</h2>
-            <Link to="/category/electronics" className="text-blue-600 flex items-center gap-1">عرض الكل</Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {products.slice(0, 4).map(product => (
-              <Link key={product.id} to={`/product/${product.id}`} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
-                <img src={product.image} alt={product.name} className="w-full h-48 object-cover" />
-                <div className="p-4">
-                  <span className="text-xs text-blue-600 font-bold uppercase tracking-wider">{CATEGORY_LABELS[product.category]}</span>
-                  <h3 className="font-bold text-lg mt-1">{product.name}</h3>
-                  <p className="text-gray-500 text-sm mt-2 line-clamp-2">{product.description}</p>
-                  <div className="mt-4 flex justify-between items-center">
-                    <span className="text-blue-600 font-bold">{product.price.toLocaleString()} {CURRENCY}</span>
+              ) : (
+                <>
+                  <div className="bg-blue-100 p-6 rounded-full text-blue-600 mb-6 group-hover:scale-110 transition duration-500">
+                    <Upload size={48} />
                   </div>
-                </div>
-              </Link>
-            ))}
+                  <h3 className="text-2xl font-bold text-slate-800 mb-2">اسحب الصور هنا أو اضغط للاختيار</h3>
+                  <p className="text-slate-400">يدعم JPG, PNG, WEBP حتى 10 ميجابايت</p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="max-w-7xl mx-auto px-4 py-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-slate-100">
+            <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center text-blue-600 mx-auto mb-6">
+              <Zap size={32} />
+            </div>
+            <h4 className="text-xl font-bold mb-3">سرعة فائقة</h4>
+            <p className="text-slate-500">نستخدم أحدث التقنيات لضمان رفع وعرض الصور بأقصى سرعة ممكنة.</p>
+          </div>
+          <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-slate-100">
+            <div className="bg-green-50 w-16 h-16 rounded-2xl flex items-center justify-center text-green-600 mx-auto mb-6">
+              <Shield size={32} />
+            </div>
+            <h4 className="text-xl font-bold mb-3">أمان تام</h4>
+            <p className="text-slate-500">صورك محفوظة بشكل خاص ولا يتم مشاركتها إلا من خلال الرابط الذي ترغب به.</p>
+          </div>
+          <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-slate-100">
+            <div className="bg-purple-50 w-16 h-16 rounded-2xl flex items-center justify-center text-purple-600 mx-auto mb-6">
+              <Share2 size={32} />
+            </div>
+            <h4 className="text-xl font-bold mb-3">سهولة المشاركة</h4>
+            <p className="text-slate-500">احصل على روابط مباشرة لصورك لسهولة دمجها في المواقع والمنتديات.</p>
           </div>
         </div>
       </section>

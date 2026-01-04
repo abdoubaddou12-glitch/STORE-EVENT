@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-// Added Upload to the lucide-react imports
 import { Copy, Check, Trash2, ExternalLink, Download, Search, Image as ImageIcon, Upload } from 'lucide-react';
 import { UploadedImage } from '../types';
 
@@ -102,6 +101,14 @@ const GalleryPage: React.FC<GalleryPageProps> = ({ images, onDelete }) => {
           </Link>
         </div>
       )}
+
+      {/* Adsterra Bottom Banner Area */}
+      <div className="mt-16">
+        <div className="ad-container shadow-sm">
+           {/* ضع كود Adsterra Native أو Banner هنا */}
+           <p className="text-slate-400 text-xs">إعلان Adsterra (Bottom Area)</p>
+        </div>
+      </div>
     </div>
   );
 };

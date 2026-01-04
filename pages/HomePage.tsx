@@ -38,26 +38,24 @@ const HomePage: React.FC<HomePageProps> = ({ onUpload }) => {
         };
         newImages.push(img);
         processedCount++;
-        if (processedCount === files.length) finalize();
+        if (processedCount === files.length) {
+            if (newImages.length > 0) {
+              onUpload(newImages);
+              setTimeout(() => {
+                setIsUploading(false);
+                navigate('/gallery');
+              }, 800);
+            } else {
+              setIsUploading(false);
+              alert('يرجى اختيار ملفات صور صالحة');
+            }
+        }
       };
       reader.readAsDataURL(file);
     });
-
-    const finalize = () => {
-      if (newImages.length > 0) {
-        onUpload(newImages);
-        setTimeout(() => {
-          setIsUploading(false);
-          navigate('/gallery');
-        }, 800);
-      } else {
-        setIsUploading(false);
-        alert('يرجى اختيار ملفات صور صالحة');
-      }
-    };
   };
 
-  const finalize = () => {}; // Placeholder for the scoping
+  const finalize = () => {};
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -78,17 +76,12 @@ const HomePage: React.FC<HomePageProps> = ({ onUpload }) => {
 
   return (
     <div className="pb-12">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-blue-50 to-white py-20 px-4">
+      <section className="bg-gradient-to-b from-blue-50 to-white py-12 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-6 leading-tight">
             ارفع صورك <span className="text-blue-600">بسهولة</span> وشاركها في ثوانٍ
           </h1>
-          <p className="text-xl text-slate-500 mb-12 max-w-2xl mx-auto">
-            أفضل منصة لرفع وتخزين الصور مجاناً. لا حاجة للتسجيل، فقط اسحب وأفلت صورك وابدأ المشاركة فوراً.
-          </p>
-
-          {/* Upload Area */}
+          
           <div 
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -129,8 +122,7 @@ const HomePage: React.FC<HomePageProps> = ({ onUpload }) => {
         </div>
       </section>
 
-      {/* Features */}
-      <section className="max-w-7xl mx-auto px-4 py-20">
+      <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-slate-100">
             <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center text-blue-600 mx-auto mb-6">
@@ -144,7 +136,7 @@ const HomePage: React.FC<HomePageProps> = ({ onUpload }) => {
               <Shield size={32} />
             </div>
             <h4 className="text-xl font-bold mb-3">أمان تام</h4>
-            <p className="text-slate-500">صورك محفوظة بشكل خاص ولا يتم مشاركتها إلا من خلال الرابط الذي ترغب به.</p>
+            <p className="text-slate-500">صورك محفوظة بشكل خاص ولا يتم مشاركتها إلا من خلال الرابط.</p>
           </div>
           <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-slate-100">
             <div className="bg-purple-50 w-16 h-16 rounded-2xl flex items-center justify-center text-purple-600 mx-auto mb-6">
@@ -155,6 +147,14 @@ const HomePage: React.FC<HomePageProps> = ({ onUpload }) => {
           </div>
         </div>
       </section>
+
+      {/* Adsterra Bottom Banner Area */}
+      <div className="max-w-7xl mx-auto px-4 mt-12">
+        <div className="ad-container shadow-sm">
+           {/* ضع كود Adsterra Banner 728x90 هنا */}
+           <p className="text-slate-400 text-xs">إعلان Adsterra (Bottom Banner)</p>
+        </div>
+      </div>
     </div>
   );
 };
